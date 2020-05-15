@@ -25,6 +25,7 @@ public class ClearLag extends JavaPlugin implements Listener
 
     private ArrayList<ItemStack> items = new ArrayList<>();
     private ArrayList<Player> cooldown = new ArrayList<>();
+    private ScrollerInventory scrollableInventory;
     private long nextClear;
     private boolean abyss;
     private int taskId;
@@ -38,6 +39,7 @@ public class ClearLag extends JavaPlugin implements Listener
         Text.setUp(this);
 
         delay = 1000 * Integer.valueOf(Text.get("delayinseconds", false));
+        scrollableInventory = null;
 
         console.sendMessage(" ");
         console.sendMessage(" ");
@@ -74,7 +76,10 @@ public class ClearLag extends JavaPlugin implements Listener
             return true;
         }
 
-        new ScrollerInventory(items, Text.get("prefix"), player);
+        if (scrollableInventory == null)
+            scrollableInventory = new ScrollerInventory(items, Text.get("prefix"));
+
+        scrollableInventory.openInventory(player);
 
         return true;
     }
@@ -121,14 +126,17 @@ public class ClearLag extends JavaPlugin implements Listener
         {
             event.setCancelled(true);
 
-            if (inv.currpage >= inv.pages.size() - 1)
+            if (inv.currentPage.get(p) >= inv.pages.size() - 1)
             {
                 return;
             }
             else
             {
-                inv.currpage += 1;
-                p.openInventory(inv.pages.get(inv.currpage));
+                int currentpage = inv.currentPage.get(p);
+                inv.currentPage.remove(p);
+                inv.currentPage.put(p, currentpage + 1);
+
+                p.openInventory(inv.pages.get(inv.currentPage.get(p)));
             }
 
         }
@@ -136,10 +144,13 @@ public class ClearLag extends JavaPlugin implements Listener
         {
             event.setCancelled(true);
 
-            if (inv.currpage > 0)
+            if (inv.currentPage.get(p) > 0)
             {
-                inv.currpage -= 1;
-                p.openInventory(inv.pages.get(inv.currpage));
+                int currentpage = inv.currentPage.get(p);
+                inv.currentPage.remove(p);
+                inv.currentPage.put(p, currentpage - 1);
+
+                p.openInventory(inv.pages.get(inv.currentPage.get(p)));
             }
         }
     }
@@ -237,6 +248,7 @@ public class ClearLag extends JavaPlugin implements Listener
                 }
 
                 nextClear = System.currentTimeMillis() + delay;
+                scrollableInventory = null;
             }
         }.runTaskLater(this, 20 * 30);
     }

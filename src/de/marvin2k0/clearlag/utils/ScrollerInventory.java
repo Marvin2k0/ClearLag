@@ -15,11 +15,14 @@ public class ScrollerInventory
 {
     public static HashMap<UUID, ScrollerInventory> users = new HashMap<UUID, ScrollerInventory>();
 
-    public ArrayList<Inventory> pages = new ArrayList<Inventory>();
+    public ArrayList<Inventory> pages = new ArrayList<>();
     public UUID id;
+
+    public HashMap<Player, Integer> currentPage = new HashMap<>();
+
     public int currpage = 0;
 
-    public ScrollerInventory(ArrayList<ItemStack> items, String name, Player p)
+    public ScrollerInventory(ArrayList<ItemStack> items, String name)
     {
         this.id = UUID.randomUUID();
 
@@ -38,9 +41,15 @@ public class ScrollerInventory
                 page.addItem(items.get(i));
             }
         }
-        pages.add(page);
 
-        p.openInventory(pages.get(currpage));
+        pages.add(page);
+    }
+
+    public void openInventory(Player p)
+    {
+        currentPage.put(p, 0);
+
+        p.openInventory(pages.get(currentPage.get(p)));
         users.put(p.getUniqueId(), this);
     }
 
