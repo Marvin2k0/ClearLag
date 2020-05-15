@@ -1,5 +1,6 @@
 package de.marvin2k0.clearlag;
 
+import de.marvin2k0.clearlag.utils.ScrollerInventory;
 import de.marvin2k0.clearlag.utils.Text;
 import org.bukkit.Bukkit;
 import org.bukkit.World;
@@ -12,7 +13,6 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.inventory.InventoryClickEvent;
-import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitRunnable;
@@ -25,7 +25,6 @@ public class ClearLag extends JavaPlugin implements Listener
 
     private ArrayList<ItemStack> items = new ArrayList<>();
     private ArrayList<Player> cooldown = new ArrayList<>();
-    private Inventory inventory;
     private long nextClear;
     private boolean abyss;
     private int taskId;
@@ -38,7 +37,6 @@ public class ClearLag extends JavaPlugin implements Listener
 
         Text.setUp(this);
 
-        inventory = Bukkit.createInventory(null, 54, Text.get("prefix"));
         delay = 1000 * 60 * 10;
 
         console.sendMessage(" ");
@@ -76,36 +74,50 @@ public class ClearLag extends JavaPlugin implements Listener
             return true;
         }
 
-        player.openInventory(inventory);
+        new ScrollerInventory(items, Text.get("prefix"), player);
 
         return true;
     }
 
-    @EventHandler
+    @EventHandler(ignoreCancelled = true)
     public void onClick(InventoryClickEvent event)
     {
-        if (!abyss)
+        if (!(event.getWhoClicked() instanceof Player))
             return;
 
-        if (event.getView().getTitle().equals(Text.get("prefix")))
+        Player p = (Player) event.getWhoClicked();
+
+        if (!ScrollerInventory.users.containsKey(p.getUniqueId()))
+            return;
+
+        ScrollerInventory inv = ScrollerInventory.users.get(p.getUniqueId());
+
+        if (event.getCurrentItem() == null || event.getCurrentItem().getItemMeta() == null || event.getCurrentItem().getItemMeta().getDisplayName() == null)
+            return;
+
+        if (event.getCurrentItem().getItemMeta().getDisplayName().equals(ScrollerInventory.nextPageName))
         {
-            Player player = (Player) event.getWhoClicked();
+            event.setCancelled(true);
 
-            if (!cooldown.contains(player))
+            if (inv.currpage >= inv.pages.size() - 1)
             {
-                cooldown.add(player);
-
-                new BukkitRunnable()
-                {
-                    public void run()
-                    {
-                        cooldown.remove(player);
-                    }
-                }.runTaskLater(this, 20 * Long.valueOf(Text.get("cooldown", false)) / 1000);
+                return;
             }
             else
             {
-                event.setCancelled(true);
+                inv.currpage += 1;
+                p.openInventory(inv.pages.get(inv.currpage));
+            }
+
+        }
+        else if (event.getCurrentItem().getItemMeta().getDisplayName().equals(ScrollerInventory.previousPageName))
+        {
+            event.setCancelled(true);
+
+            if (inv.currpage > 0)
+            {
+                inv.currpage -= 1;
+                p.openInventory(inv.pages.get(inv.currpage));
             }
         }
     }
@@ -131,7 +143,7 @@ public class ClearLag extends JavaPlugin implements Listener
 
                     for (World world : Bukkit.getWorlds())
                     {
-                        for (Entity e: world.getEntities())
+                        for (Entity e : world.getEntities())
                         {
                             if (!(e instanceof Item))
                                 continue;
@@ -161,7 +173,7 @@ public class ClearLag extends JavaPlugin implements Listener
                         for (Player p : Bukkit.getOnlinePlayers())
                             p.sendMessage(Text.get("10sec"));
                     }
-                    else if (minutes == 0 && seconds <=3 && seconds > 0)
+                    else if (minutes == 0 && seconds <= 3 && seconds > 0)
                     {
                         for (Player p : Bukkit.getOnlinePlayers())
                             p.sendMessage(Text.get("countdown").replace("%seconds%", seconds + ""));
@@ -183,22 +195,11 @@ public class ClearLag extends JavaPlugin implements Listener
     {
         abyss = true;
 
-        ItemStack[] content = new ItemStack[inventory.getSize()];
-
-        int i = 0;
-
-        for (ItemStack item : items)
-        {
-            content[i] = item;
-            i++;
-        }
-
-        inventory.setContents(content);
-
         for (Player player : Bukkit.getOnlinePlayers())
             player.sendMessage(Text.get("started"));
 
-        new BukkitRunnable() {
+        new BukkitRunnable()
+        {
 
             @Override
             public void run()
