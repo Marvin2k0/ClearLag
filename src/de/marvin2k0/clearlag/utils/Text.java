@@ -38,6 +38,7 @@ public class Text
         config.addDefault("nextpage", "&aNext page");
         config.addDefault("previouspage", "&cPrevious page");
         config.addDefault("cooldown", 500);
+        config.addDefault("closed", "&7The abyss is closed");
 
         saveConfig();
     }

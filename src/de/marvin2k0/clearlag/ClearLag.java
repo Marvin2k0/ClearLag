@@ -87,6 +87,11 @@ public class ClearLag extends JavaPlugin implements Listener
 
         Player p = (Player) event.getWhoClicked();
 
+        if (!event.getView().getTitle().equalsIgnoreCase(Text.get("prefix")))
+        {
+            return;
+        }
+
         if (!ScrollerInventory.users.containsKey(p.getUniqueId()))
             return;
 
@@ -94,6 +99,23 @@ public class ClearLag extends JavaPlugin implements Listener
 
         if (event.getCurrentItem() == null || event.getCurrentItem().getItemMeta() == null || event.getCurrentItem().getItemMeta().getDisplayName() == null)
             return;
+
+        if (cooldown.contains(p))
+        {
+            event.setCancelled(true);
+            return;
+        }
+
+        cooldown.add(p);
+
+        new BukkitRunnable() {
+
+            @Override
+            public void run()
+            {
+                cooldown.remove(p);
+            }
+        }.runTaskLater(this, 20 * Long.valueOf(Text.get("cooldown", false)) / 1000);
 
         if (event.getCurrentItem().getItemMeta().getDisplayName().equals(ScrollerInventory.nextPageName))
         {
@@ -211,7 +233,7 @@ public class ClearLag extends JavaPlugin implements Listener
                     if (player.getOpenInventory() != null && player.getOpenInventory().getTitle().equals(Text.get("prefix")))
                         player.closeInventory();
 
-                    player.sendMessage(Text.get("prefix") + " §7The abyss is closed!");
+                    player.sendMessage(Text.get("closed"));
                 }
 
                 nextClear = System.currentTimeMillis() + delay;
