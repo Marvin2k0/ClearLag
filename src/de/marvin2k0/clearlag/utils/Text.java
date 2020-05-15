@@ -34,6 +34,9 @@ public class Text
         config.addDefault("started", "&7The abyss has opened for &b30 seconds&7! Command: &b/abyss");
         config.addDefault("noplayer", "&cThis command is only for players!");
         config.addDefault("notintime", "&cYou can't do that now!");
+        config.addDefault("delayinseconds", 60 * 10);
+        config.addDefault("nextpage", "&aNext page");
+        config.addDefault("previouspage", "&cPrevious page");
         config.addDefault("cooldown", 500);
 
         saveConfig();

@@ -45,8 +45,8 @@ public class ScrollerInventory
     }
 
 
-    public static final String nextPageName = "§aNext Page";
-    public static final String previousPageName = "§cPrevious Page";
+    public static final String nextPageName = Text.get("nextpage", false);
+    public static final String previousPageName = Text.get("previouspage", false);
 
     private Inventory getBlankPage(String name)
     {

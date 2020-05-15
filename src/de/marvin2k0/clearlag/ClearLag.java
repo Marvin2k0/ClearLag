@@ -37,7 +37,7 @@ public class ClearLag extends JavaPlugin implements Listener
 
         Text.setUp(this);
 
-        delay = 1000 * 60 * 10;
+        delay = 1000 * Integer.valueOf(Text.get("delayinseconds", false));
 
         console.sendMessage(" ");
         console.sendMessage(" ");
